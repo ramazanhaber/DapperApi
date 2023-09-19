@@ -6,6 +6,7 @@ using System.Data;
 
 namespace DapperApi.Helper
 {
+    // CREATE BY RAMBO
     public class DatabaseHelper
     {
         private readonly IDbConnection _connection;
