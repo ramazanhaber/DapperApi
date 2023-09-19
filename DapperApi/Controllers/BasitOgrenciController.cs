@@ -1,6 +1,8 @@
 ﻿using Dapper;
 using DapperApi.Helper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using System.Data;
 namespace DapperApi.Controllers
 {
@@ -10,10 +12,14 @@ namespace DapperApi.Controllers
     {
         private readonly IDbConnection _connection;
         private readonly DatabaseHelper _databaseHelper;
-        public BasitOgrenciController(IDbConnection connection)
+        private readonly IConfiguration _configuration;
+
+        public BasitOgrenciController(DatabaseConnections connections, IConfiguration configuration)
         {
-            _connection = connection;
-            _databaseHelper = new DatabaseHelper(connection);
+            _connection = connections.DefaultConnection; // ilk veri tabanı
+            _databaseHelper = new DatabaseHelper(connections.SecondConnection); // ikinci veri tabanı
+            _configuration = configuration;
+
         }
         [HttpPost]
         [Route("GetOgrenciler")]
@@ -74,6 +80,17 @@ namespace DapperApi.Controllers
             DataTable dataTable = _databaseHelper.ExecuteQueryToDataTable(query);
             bool sonuc = _databaseHelper.exec(query);
             return Ok(json);
+        }
+
+
+        [HttpPost]
+        [Route("dinamikconnection")]
+        public IActionResult dinamikconnection(string query)
+        {
+            string connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using IDbConnection dbConnection = new SqlConnection(connectionString);
+            var ogrenciler = dbConnection.Query<Ogrenciler>("SELECT * FROM Ogrenciler");
+            return Ok(ogrenciler);
         }
     }
 }

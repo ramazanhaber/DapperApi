@@ -1,4 +1,4 @@
-
+using DapperApi;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
@@ -9,8 +9,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-string connectionString = builder.Configuration.GetConnectionString("DefaultConnection"); 
-builder.Services.AddTransient<IDbConnection>(sp => new SqlConnection(connectionString));
+string defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+IDbConnection defaultConnection = new SqlConnection(defaultConnectionString);
+
+string secondConnectionString = builder.Configuration.GetConnectionString("SecondConnection");
+IDbConnection secondConnection = new SqlConnection(secondConnectionString);
+
+builder.Services.AddSingleton(new DatabaseConnections(defaultConnection, secondConnection));
+
 
 var app = builder.Build();
 app.UseCors(builder => builder
