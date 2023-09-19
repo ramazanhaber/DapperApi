@@ -1,10 +1,7 @@
 ﻿using Dapper;
 using DapperApi.Helper;
-using DapperApi.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
-
 namespace DapperApi.Controllers
 {
     [Route("api/[controller]")]
@@ -13,15 +10,11 @@ namespace DapperApi.Controllers
     {
         private readonly IDbConnection _connection;
         private readonly DatabaseHelper _databaseHelper;
-
-
         public BasitOgrenciController(IDbConnection connection)
         {
             _connection = connection;
             _databaseHelper = new DatabaseHelper(connection);
-
         }
-
         [HttpPost]
         [Route("GetOgrenciler")]
         public ActionResult<IEnumerable<Ogrenciler>> GetOgrenciler()
@@ -29,7 +22,6 @@ namespace DapperApi.Controllers
             var ogrenciler = _connection.Query<Ogrenciler>("SELECT * FROM Ogrenciler");
             return Ok(ogrenciler);
         }
-
         [HttpPost]
         [Route("GetOgrenciById")]
         public ActionResult<Ogrenciler> GetOgrenciById(int id)
@@ -41,7 +33,6 @@ namespace DapperApi.Controllers
             }
             return Ok(ogrenci);
         }
-
         [HttpPost]
         [Route("PostOgrenci")]
         public ActionResult<Ogrenciler> PostOgrenci(Ogrenciler ogrenci)
@@ -50,7 +41,6 @@ namespace DapperApi.Controllers
             _connection.Execute(query, ogrenci);
             return Ok();
         }
-
         [HttpPost]
         [Route("PostOgrenciDon")]
         public ActionResult<Ogrenciler> PostOgrenciDon(Ogrenciler ogrenci)
@@ -60,7 +50,6 @@ namespace DapperApi.Controllers
             ogrenci.id = newId;
             return CreatedAtAction(nameof(GetOgrenciById), new { id = ogrenci.id }, ogrenci);
         }
-
         [HttpPost]
         [Route("UpdateOgrenci")]
         public IActionResult UpdateOgrenci(Ogrenciler ogrenci)
@@ -69,7 +58,6 @@ namespace DapperApi.Controllers
             _connection.Execute(query, ogrenci);
             return Ok();
         }
-
         [HttpPost]
         [Route("DeleteOgrenci")]
         public IActionResult DeleteOgrenci(int id)
@@ -78,7 +66,6 @@ namespace DapperApi.Controllers
             _connection.Execute(query, new { id = id });
             return Ok();
         }
-
         [HttpPost]
         [Route("QueryToJsonveQueryToDataTableveExec")]
         public IActionResult QueryToJsonveQueryToDataTableveExec(string query)
@@ -86,9 +73,7 @@ namespace DapperApi.Controllers
             string json = _databaseHelper.ExecuteQueryToJson(query);
             DataTable dataTable = _databaseHelper.ExecuteQueryToDataTable(query);
             bool sonuc = _databaseHelper.exec(query);
-
             return Ok(json);
         }
-
     }
 }
