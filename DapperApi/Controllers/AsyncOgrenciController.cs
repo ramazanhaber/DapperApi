@@ -1,109 +1,115 @@
-﻿using Dapper;
-using DapperApi.Helper;
+﻿using DapperApi.Helper;
 using DapperApi.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using System.Data.Common;
 using System.Data;
+using Dapper;
+
 namespace DapperApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BasitOgrenciController : ControllerBase
+    public class AsyncOgrenciController : ControllerBase
     {
         private readonly IDbConnection _connection;
-        private readonly DatabaseHelper _databaseHelper;
+        private readonly AsyncDatabaseHelper _databaseHelper;
         private readonly IConfiguration _configuration;
 
-        public BasitOgrenciController(DatabaseConnections connections, IConfiguration configuration)
+        public AsyncOgrenciController(DatabaseConnections connections, IConfiguration configuration)
         {
             _connection = connections.DefaultConnection; // ilk veri tabanı
-            _databaseHelper = new DatabaseHelper(connections.SecondConnection); // ikinci veri tabanı
+            _databaseHelper = new AsyncDatabaseHelper(connections.SecondConnection); // ikinci veri tabanı
             _configuration = configuration;
 
         }
+
         [HttpPost]
         [Route("GetOgrenciler")]
-        public ActionResult<IEnumerable<Ogrenciler>> GetOgrenciler()
+        public async Task<ActionResult<IEnumerable<Ogrenciler>>> GetOgrenciler()
         {
-            var ogrenciler = _connection.Query<Ogrenciler>("SELECT * FROM Ogrenciler");
+            var ogrenciler = await _connection.QueryAsync<Ogrenciler>("SELECT * FROM Ogrenciler");
             return Ok(ogrenciler);
         }
 
         [HttpPost]
         [Route("GetOgrencilerGenelModel")]
-        public ActionResult<IEnumerable<Ogrenciler>> GetOgrencilerGenelModel()
+        public async Task<ActionResult<GenelModel>> GetOgrencilerGenelModel()
         {
-            var ogrenciler = _connection.Query<Ogrenciler>("SELECT * FROM Ogrenciler");
-
+            var ogrenciler = await _connection.QueryAsync<Ogrenciler>("SELECT * FROM Ogrenciler");
             GenelModel genelModel = new GenelModel();
             genelModel.Data = ogrenciler;
-
             return Ok(genelModel);
         }
 
         [HttpPost]
         [Route("GetOgrenciById")]
-        public ActionResult<Ogrenciler> GetOgrenciById(int id)
+        public async Task<ActionResult<Ogrenciler>> GetOgrenciById(int id)
         {
-            var ogrenci = _connection.QuerySingleOrDefault<Ogrenciler>("SELECT * FROM Ogrenciler WHERE id = @id", new { id = id });
+            var ogrenci = await _connection.QuerySingleOrDefaultAsync<Ogrenciler>("SELECT * FROM Ogrenciler WHERE id = @id", new { id = id });
             if (ogrenci == null)
             {
                 return NotFound();
             }
             return Ok(ogrenci);
         }
+
         [HttpPost]
         [Route("PostOgrenci")]
-        public ActionResult<Ogrenciler> PostOgrenci(Ogrenciler ogrenci)
+        public async Task<IActionResult> PostOgrenci(Ogrenciler ogrenci)
         {
             string query = "INSERT INTO Ogrenciler (Ad, Yas) OUTPUT INSERTED.id VALUES (@Ad, @Yas)";
-            _connection.Execute(query, ogrenci);
+            await _connection.ExecuteAsync(query, ogrenci);
             return Ok();
         }
+
         [HttpPost]
         [Route("PostOgrenciDon")]
-        public ActionResult<Ogrenciler> PostOgrenciDon(Ogrenciler ogrenci)
+        public async Task<ActionResult<Ogrenciler>> PostOgrenciDon(Ogrenciler ogrenci)
         {
             string query = "INSERT INTO Ogrenciler (Ad, Yas) OUTPUT INSERTED.id VALUES (@Ad, @Yas)";
-            int newId = _connection.ExecuteScalar<int>(query, ogrenci);
+            int newId = await _connection.ExecuteScalarAsync<int>(query, ogrenci);
             ogrenci.id = newId;
             return CreatedAtAction(nameof(GetOgrenciById), new { id = ogrenci.id }, ogrenci);
         }
+
         [HttpPost]
         [Route("UpdateOgrenci")]
-        public IActionResult UpdateOgrenci(Ogrenciler ogrenci)
+        public async Task<IActionResult> UpdateOgrenci(Ogrenciler ogrenci)
         {
             string query = "UPDATE Ogrenciler SET Ad = @Ad, Yas = @Yas WHERE id = @id";
-            _connection.Execute(query, ogrenci);
+            await _connection.ExecuteAsync(query, ogrenci);
             return Ok();
         }
+
         [HttpPost]
         [Route("DeleteOgrenci")]
-        public IActionResult DeleteOgrenci(int id)
+        public async Task<IActionResult> DeleteOgrenci(int id)
         {
             string query = "DELETE FROM Ogrenciler WHERE id = @id";
-            _connection.Execute(query, new { id = id });
+            await _connection.ExecuteAsync(query, new { id = id });
             return Ok();
         }
+
         [HttpPost]
         [Route("QueryToJsonveQueryToDataTableveExec")]
-        public IActionResult QueryToJsonveQueryToDataTableveExec(string query)
+        public async Task<IActionResult> QueryToJsonveQueryToDataTableveExec(string query)
         {
-            string json = _databaseHelper.ExecuteQueryToJson(query);
-            DataTable dataTable = _databaseHelper.ExecuteQueryToDataTable(query);
-            bool sonuc = _databaseHelper.exec(query);
+            string json = await _databaseHelper.ExecuteQueryToJsonAsync(query);
+            DataTable dataTable = await _databaseHelper.ExecuteQueryToDataTableAsync(query);
+            bool sonuc = await _databaseHelper.ExecAsync(query);
             return Ok(json);
         }
 
-
         [HttpPost]
         [Route("dinamikconnection")]
-        public IActionResult dinamikconnection(string query)
+        public async Task<IActionResult> dinamikconnection(string query)
         {
             string connectionString = _configuration.GetConnectionString("DefaultConnection");
             using IDbConnection dbConnection = new SqlConnection(connectionString);
-            var ogrenciler = dbConnection.Query<Ogrenciler>("SELECT * FROM Ogrenciler");
+            var ogrenciler = await dbConnection.QueryAsync<Ogrenciler>("SELECT * FROM Ogrenciler");
             return Ok(ogrenciler);
         }
     }
