@@ -1,5 +1,6 @@
 ﻿using System.Data;
-namespace DapperApi
+
+namespace DapperApi.Helper
 {
     public class DatabaseConnections
     {
