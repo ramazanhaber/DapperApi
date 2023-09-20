@@ -1,13 +1,9 @@
 ﻿using DapperApi.Helper;
 using DapperApi.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using System.Data.Common;
 using System.Data;
 using Dapper;
-
 namespace DapperApi.Controllers
 {
     [Route("api/[controller]")]
@@ -17,15 +13,12 @@ namespace DapperApi.Controllers
         private readonly IDbConnection _connection;
         private readonly AsyncDatabaseHelper _databaseHelper;
         private readonly IConfiguration _configuration;
-
         public AsyncOgrenciController(DatabaseConnections connections, IConfiguration configuration)
         {
             _connection = connections.DefaultConnection; // ilk veri tabanı
             _databaseHelper = new AsyncDatabaseHelper(connections.SecondConnection); // ikinci veri tabanı
             _configuration = configuration;
-
         }
-
         [HttpPost]
         [Route("GetOgrenciler")]
         public async Task<ActionResult<IEnumerable<Ogrenciler>>> GetOgrenciler()
@@ -33,7 +26,6 @@ namespace DapperApi.Controllers
             var ogrenciler = await _connection.QueryAsync<Ogrenciler>("SELECT * FROM Ogrenciler");
             return Ok(ogrenciler);
         }
-
         [HttpPost]
         [Route("GetOgrencilerGenelModel")]
         public async Task<ActionResult<GenelModel>> GetOgrencilerGenelModel()
@@ -43,7 +35,6 @@ namespace DapperApi.Controllers
             genelModel.Data = ogrenciler;
             return Ok(genelModel);
         }
-
         [HttpPost]
         [Route("GetOgrenciById")]
         public async Task<ActionResult<Ogrenciler>> GetOgrenciById(int id)
@@ -55,7 +46,6 @@ namespace DapperApi.Controllers
             }
             return Ok(ogrenci);
         }
-
         [HttpPost]
         [Route("PostOgrenci")]
         public async Task<IActionResult> PostOgrenci(Ogrenciler ogrenci)
@@ -64,7 +54,6 @@ namespace DapperApi.Controllers
             await _connection.ExecuteAsync(query, ogrenci);
             return Ok();
         }
-
         [HttpPost]
         [Route("PostOgrenciDon")]
         public async Task<ActionResult<Ogrenciler>> PostOgrenciDon(Ogrenciler ogrenci)
@@ -74,7 +63,6 @@ namespace DapperApi.Controllers
             ogrenci.id = newId;
             return CreatedAtAction(nameof(GetOgrenciById), new { id = ogrenci.id }, ogrenci);
         }
-
         [HttpPost]
         [Route("UpdateOgrenci")]
         public async Task<IActionResult> UpdateOgrenci(Ogrenciler ogrenci)
@@ -83,7 +71,6 @@ namespace DapperApi.Controllers
             await _connection.ExecuteAsync(query, ogrenci);
             return Ok();
         }
-
         [HttpPost]
         [Route("DeleteOgrenci")]
         public async Task<IActionResult> DeleteOgrenci(int id)
@@ -92,7 +79,6 @@ namespace DapperApi.Controllers
             await _connection.ExecuteAsync(query, new { id = id });
             return Ok();
         }
-
         [HttpPost]
         [Route("QueryToJsonveQueryToDataTableveExec")]
         public async Task<IActionResult> QueryToJsonveQueryToDataTableveExec(string query)
@@ -102,7 +88,6 @@ namespace DapperApi.Controllers
             bool sonuc = await _databaseHelper.ExecAsync(query);
             return Ok(json);
         }
-
         [HttpPost]
         [Route("dinamikconnection")]
         public async Task<IActionResult> dinamikconnection(string query)
