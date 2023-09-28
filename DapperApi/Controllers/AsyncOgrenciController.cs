@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using Dapper;
+using Newtonsoft.Json;
+
 namespace DapperApi.Controllers
 {
     [Route("api/[controller]")]
@@ -35,6 +37,7 @@ namespace DapperApi.Controllers
             genelModel.Data = ogrenciler;
             return Ok(genelModel);
         }
+
         [HttpPost]
         [Route("GetOgrenciById")]
         public async Task<ActionResult<Ogrenciler>> GetOgrenciById(int id)
@@ -97,5 +100,40 @@ namespace DapperApi.Controllers
             var ogrenciler = await dbConnection.QueryAsync<Ogrenciler>("SELECT * FROM Ogrenciler");
             return Ok(ogrenciler);
         }
+
+        [HttpPost]
+        [Route("Data2")]
+        public async Task<ActionResult<GenelModel>> Data2()
+        {
+            var ogrenciler = await _connection.QueryAsync<Ogrenciler>("SELECT * FROM Ogrenciler");
+            GenelModel genelModel = new GenelModel();
+            genelModel.Data = ogrenciler.FirstOrDefault();
+
+            var jsonText = JsonConvert.SerializeObject(genelModel).Replace(",\"Data\":", ",\"Ogrenciler\":");
+
+            return Ok(jsonText);
+        }
+
+
+
+        [HttpPost]
+        [Route("Data3")]
+        public async Task<ActionResult<dynamic>> Data3()
+        {
+            var ogrenciler = await _connection.QueryAsync<Ogrenciler>("SELECT * FROM Ogrenciler");
+
+
+            var genelmodel = new
+            {
+                durum = true,
+                mesaj = "Başarılı",
+                hatamesaj = "",
+                ogrenciler = ogrenciler,
+
+            };
+
+            return genelmodel;
+        }
+
     }
 }

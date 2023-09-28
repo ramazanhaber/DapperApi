@@ -7,5 +7,7 @@
         public string hatamesaj { get; set; } = "";
 
         public object Data { get; set; }
+
+
     }
 }
