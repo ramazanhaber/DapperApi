@@ -128,7 +128,7 @@ namespace DapperApi.Controllers
                 durum = true,
                 mesaj = "Başarılı",
                 hatamesaj = "",
-                ogrenciler = ogrenciler,
+                ogrenciler1 = ogrenciler,
 
             };
 
